@@ -1,23 +1,39 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState, useEffect } from 'react';
+
+import Header from './components/Header';
+import NewNote from './components/NewNote';
+import NoteList from './components/NoteList';
 
 function App() {
+  const [notes, setNotes] = useState([]);
+
+  useEffect(() => {
+    fetch('http://localhost:7070/notes')
+      .then((response) => response.json())
+      .then((data) => setNotes(data));
+  }, []);
+
+  async function fetchNoteHandler() {
+    const response = await fetch('http://localhost:7070/notes');
+    const data = await response.json();
+    setNotes(data);
+  }
+
+  async function addNoteHandler(data) {
+    await fetch('http://localhost:7070/notes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json; charser=utf-8',
+      },
+      body: JSON.stringify(data),
+    });
+  }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Header onUpdate={fetchNoteHandler} />
+      <NoteList notes={notes} onUpdate={fetchNoteHandler} />
+      <NewNote onAddNote={addNoteHandler} onUpdate={fetchNoteHandler}/>
     </div>
   );
 }
